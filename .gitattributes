@@ -1,0 +1,8 @@
+# Set default behavior to automatically normalize line endings
+* text=auto
+
+# Declare specific file types to always use LF
+*.txt text eol=lf
+*.bat text eol=crlf
+*.pdf binary
+
