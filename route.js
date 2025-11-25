@@ -109,7 +109,6 @@ export async function routes(fastify, options) {
 
     // POST /callback - SePay webhook callback
     fastify.post('/callback', {
-        preHandler: apiKeyMiddleware,
         schema: {
             description: 'Webhook callback from SePay payment gateway',
             tags: ['Payment'],
@@ -144,6 +143,16 @@ export async function routes(fastify, options) {
     }, async (request, reply) => {
         try {
             const { content: webhookContent, transferAmount, referenceCode } = request.body;
+            
+            // Log SePay webhook origin
+            request.log.info({
+                event: 'sepay_webhook',
+                ip: request.headers['x-forwarded-for'] || request.ip,
+                origin: request.headers.origin,
+                referer: request.headers.referer,
+                userAgent: request.headers['user-agent'],
+                body: request.body
+            });
 
             // Find matching payment by content
             const payments = await request.server.db.select()
