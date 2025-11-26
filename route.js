@@ -89,9 +89,9 @@ export async function routes(fastify, options) {
             return reply.send({
                 success: true,
                 data: {
-                    content,
-                    ref,
-                    amount
+                    content: content,
+                    ref: ref,
+                    amount: amount
                 }
             });
         } catch (error) {
@@ -254,7 +254,10 @@ export async function routes(fastify, options) {
 
             return reply.send({
                 success: true,
-                data: payments.map(formatPaymentResponse),
+                data: payments.map(p => ({
+                    status: p.status ? 'paid' : 'unpaid',
+                    ...p
+                })),
                 count: payments.length
             });
         } catch (error) {
