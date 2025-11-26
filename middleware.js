@@ -1,5 +1,3 @@
-import 'dotenv/config';
-
 export async function apiKeyMiddleware(request, reply) {
     const apiKey = request.headers['x-api-key'];
     const validApiKey = process.env.APP_KEY;

@@ -1,4 +1,4 @@
-import 'dotenv/config';
+// Environment variables are injected by the platform
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
