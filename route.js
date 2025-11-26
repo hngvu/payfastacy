@@ -101,14 +101,12 @@ export async function routes(fastify, options) {
           ref,
           content,
         });
+        
+        const responseData = { amount, ref, content };
 
         return reply.send({
           success: true,
-          data: {
-            amount,
-            ref,
-            content,
-          },
+          data: responseData
         });
       } catch (error) {
         return reply.code(500).send({
