@@ -64,22 +64,34 @@ export async function routes(fastify, options) {
         try {
             const { amount, ref } = request.body;
 
+            // Check if ref already exists
+            const existingRef = await request.server.db.select()
+                .from(payment)
+                .where(eq(payment.ref, ref))
+                .limit(1);
+
+            if (existingRef.length > 0) {
+                return reply.code(400).send({
+                    success: false,
+                    error: 'Reference code already exists'
+                });
+            }
+
             // Generate unique content
             const content = await generateUniqueContent(request.server.db);
 
-            const [newPayment] = await request.server.db.insert(payment).values({
+            await request.server.db.insert(payment).values({
                 amount,
                 ref,
                 content
-            }).returning();
+            });
 
             return reply.send({
                 success: true,
                 data: {
-                    id: newPayment.id,
-                    amount: newPayment.amount,
-                    ref: newPayment.ref,
-                    content: newPayment.content,
+                    content,
+                    ref,
+                    amount
                 }
             });
         } catch (error) {
