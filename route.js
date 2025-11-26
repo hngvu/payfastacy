@@ -61,7 +61,14 @@ export async function routes(fastify, options) {
             type: "object",
             properties: {
               success: { type: "boolean" },
-              data: { type: "object" },
+              data: { 
+                type: "object",
+                properties: {
+                  amount: { type: "number" },
+                  ref: { type: "string" },
+                  content: { type: "string" }
+                },
+               },
             },
           },
         },
