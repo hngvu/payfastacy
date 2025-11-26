@@ -5,28 +5,6 @@ import { eq, and, gte, lte, like, isNull } from 'drizzle-orm';
 
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', parseInt(process.env.CONTENT_LENGTH) || 11);
 
-// Helper function to convert GMT to HCM timezone (GMT+7)
-function toHCMTime(date) {
-    if (!date) return null;
-    const utcDate = new Date(date);
-    // Convert to HCM timezone (GMT+7)
-    return new Date(utcDate.getTime() + 7 * 60 * 60 * 1000).toISOString().replace('Z', '+07:00');
-}
-
-// Helper function to format payment response
-function formatPaymentResponse(payment) {
-    return {
-        id: payment.id,
-        txnId: payment.txnId,
-        amount: payment.amount,
-        ref: payment.ref,
-        content: payment.content,
-        status: payment.status ? 'paid' : 'unpaid',
-        createdAt: toHCMTime(payment.createdAt),
-        updatedAt: toHCMTime(payment.updatedAt)
-    };
-}
-
 async function generateUniqueContent(db) {
     let content;
     let isUnique = false;
@@ -97,7 +75,12 @@ export async function routes(fastify, options) {
 
             return reply.send({
                 success: true,
-                data: formatPaymentResponse(newPayment)
+                data: {
+                    id: newPayment.id,
+                    amount: newPayment.amount,
+                    ref: newPayment.ref,
+                    content: newPayment.content,
+                }
             });
         } catch (error) {
             return reply.code(500).send({
@@ -155,16 +138,16 @@ export async function routes(fastify, options) {
             });
 
             // Find matching payment by content
+            // Extract payment content from webhook content (webhook content contains more text)
             const payments = await request.server.db.select()
                 .from(payment)
                 .where(
                     and(
-                        like(payment.content, `%${webhookContent}%`),
                         eq(payment.amount, transferAmount),
-                        isNull(payment.txnId)
+                        eq(payment.status, false)
                     )
                 )
-                .limit(1);
+                .then(results => results.filter(p => webhookContent.includes(p.content)));
 
             if (payments.length === 0) {
                 return reply.code(404).send({
